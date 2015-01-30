@@ -1,34 +1,43 @@
-FROM centos:6
+FROM internavenue/centos-base:centos6
+MAINTAINER Intern Avenue Dev Team <dev@internavenue.com>
 
-RUN \ 
-  yum -y update && yum clean all && \
-  rpm -Uvh http://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm && \
-  yum -y install \
+# Install EPEL
+RUN rpm -Uvh http://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm
+
+# Install base stuff.
+RUN yum -y install \
   inotify-tools \
-  Percona-Server-client-55-5.5.41-rel37.0.el6 \
-  Percona-Server-server-55-5.5.41-rel37.0.el6 \
-  Percona-Server-shared-55-5.5.41-rel37.0.el6 \
-  percona-xtrabackup-2.2.8-5059.el6 && \
-  mkdir -p /etc/mysql/conf.d \
-    && { \
-      echo '[mysqld]'; \
-      echo '!includedir /etc/mysql/conf.d/'; \
-    } > /etc/mysql/my.cnf \
-    && { \
-      echo '[mysqld]'; \
-      echo 'user = mysql'; \
-      echo 'datadir = /var/lib/mysql'; \
-    } > /etc/mysql/conf.d/docker.cnf
+  Percona-Server-client-56 \
+  Percona-Server-server-56 \
+  Percona-Server-shared-56 \
+  percona-xtrabackup \
+  unzip 
 
-RUN \
-  mysqld_safe & \
-  /usr/bin/mysqladmin --silent --wait=30 ping || exit 1 && \
-  mysql -e 'GRANT ALL PRIVILEGES ON *.* TO "root"@"%" WITH GRANT OPTION;'
+# Clean up YUM when done.
+RUN yum clean all
 
-VOLUME ["/var/lib/mysql", "/etc/mysql/conf.d/"]
+# Percona does not come with default config file.
+ADD etc/my.cnf /etc/my.cnf
+ADD etc/percona.init.sh /etc/init.d/mysqld
+RUN chmod +x /etc/init.d/mysqld
 
-COPY docker-entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Configure the database to use our data dir.
+RUN sed -i -e 's/^datadir\s*=.*/datadir = \/data/' /etc/my.cnf
 
-EXPOSE 3306
-CMD ["mysqld"]
+# Configure Percona to listen on any address.
+RUN sed -i -e 's/^bind-address/#bind-address/' /etc/my.cnf
+
+EXPOSE 3306 22
+
+ADD scripts /scripts
+RUN chmod +x /scripts/start.sh
+RUN touch /firstrun
+
+# Change the root password. The password should be changed and/or managed via Puppet.
+RUN sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config && echo 'root:Ch4ng3M3' | chpasswd
+
+# Expose our data, log, and configuration directories.
+VOLUME ["/vagrant", "/data", "/var/log", "/run"]
+
+# Kicking in
+CMD ["/scripts/start.sh"]
