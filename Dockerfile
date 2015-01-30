@@ -2,7 +2,9 @@ FROM centos:6
 
 RUN \ 
   yum -y update && yum clean all && \
-  rpm -Uvh https://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm && \
+  curl -SL https://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm -o /dev/shm/percona-release-0.0-1.x86_64.rpm && \
+  rpm -Uvh /dev/shm/percona-release-0.0-1.x86_64.rpm && \
+  rm /dev/shm/percona-release-0.0-1.x86_64.rpm && \
   yum -y install \
   inotify-tools \
   Percona-Server-client-55-5.5.41-rel37.0.el6 \
