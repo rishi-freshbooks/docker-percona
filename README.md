@@ -2,7 +2,24 @@
 
 ## Default Configuration
 
-The MySQL default configuration can be overriden by exporting the /etc/mysql/conf.d/ directory
+The MySQL default configuration can be overridden by exporting the /etc/mysql/conf.d/ directory.
+
+## Usage
+
+To run a disposable database where the data does not persist the root password by default is not set.
+
+```
+docker run -d percona:5.5
+docker run -it --link container_name:mysql --rm percona:5.5 sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
+```
+
+To persist the data share a data directory to the /var/lib/mysql mount point and define a password
+environment variable
+
+```
+docker run -dv /tmp/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwerd percona:5.5
+docker run -it --link container_name:mysql --rm percona:5.5 sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p$MYSQL_ENV_MYSQL_ROOT_PASSWORD'
+```
 
 ## Environment Variables
 

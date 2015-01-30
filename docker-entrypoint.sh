@@ -16,7 +16,7 @@ if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
 	fi
 	
 	echo 'Running mysql_install_db ...'
-	mysql_install_db --basedir=/usr/local/mysql
+	mysql_install_db
 	echo 'Finished mysql_install_db'
 	
 	# These statements _must_ be on individual lines, and _must_ end with
