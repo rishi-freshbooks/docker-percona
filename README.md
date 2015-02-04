@@ -11,11 +11,6 @@ connect to mysql like so:
 
 ```bash
 docker run -d freshbooks/percona:5.5
-docker run -it \
-  --link container_name:mysql \
-  --rm \
-  freshbooks/percona:5.5 \
-  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
 ```
 
 ### Persisting database
@@ -28,12 +23,46 @@ define a root password, or explicitly say you do not want one:
 docker run -dv /tmp/mysql:/var/lib/mysql \
   -e MYSQL_ROOT_PASSWORD=passwerd \
   freshbooks/percona:5.5
+```
+
+### Getting a mysql prompt
+
+Once your container is running, you can get a mysql prompt by running:
+
+```bash
 docker run -it \
-  --link container_name:mysql \
+  --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p$MYSQL_ENV_MYSQL_ROOT_PASSWORD'
+  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
 ```
+
+(Add `-p$MYSQL_ENV_MYSQL_ROOT_PASSWORD` to the `exec mysql` if `root` doesn't
+have a password.)
+
+### Dumping/importing data
+
+If your data lives and dies with the container, you might want to import some:
+
+```bash
+docker run -it \
+  -v /tmp/mysql:/tmp/mysql \
+  --link <container_name>:mysql \
+  --rm \
+  freshbooks/percona:5.5 \
+  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot < /tmp/mysql/dump.sql'
+```
+
+or export some:
+```bash
+docker run -it \
+  -v /tmp/mysql:/tmp/mysql \
+  --link <container_name>:mysql \
+  --rm \
+  freshbooks/percona:5.5 \
+  sh -c 'exec mysqldump -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" --databases <database_name> -uroot > /tmp/mysql/dump.sql'
+```
+
 
 ### Default Configuration
 
