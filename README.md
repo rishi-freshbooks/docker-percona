@@ -4,14 +4,15 @@
 
 ### Disposable database
 
-Data is stored in `/var/lib/mysql`, which can be optionally mounted to the host.
-If you do not mount it, your data will live and die with the container.
-No root password is set when you do not mount the data directory, so you can
-connect to mysql like so:
+Data is stored in `/var/lib/mysql`, to which the host can optionally mount a
+volume. If no volume is mounted, your data will die when the container dies.
+Run the container like this if you don't want to persist your data:
 
 ```bash
 docker run -d freshbooks/percona:5.5
 ```
+
+Note, `root` gets a passwordless login when you create the container this way.
 
 ### Persisting database
 
@@ -37,12 +38,12 @@ docker run -it \
   sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
 ```
 
-(Add `-p$MYSQL_ENV_MYSQL_ROOT_PASSWORD` to the `exec mysql` if `root` doesn't
-have a password.)
+(Add `-p$MYSQL_ENV_MYSQL_ROOT_PASSWORD` to the `exec mysql` if `root` requires
+a password.)
 
 ### Dumping/importing data
 
-If your data lives and dies with the container, you might want to import some:
+Here is how you would import data:
 
 ```bash
 docker run -it \
