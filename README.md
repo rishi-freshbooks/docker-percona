@@ -35,7 +35,10 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
+  sh -c 'exec mysql \
+    -h"$MYSQL_PORT_3306_TCP_ADDR" \
+    -P"$MYSQL_PORT_3306_TCP_PORT" \
+    -uroot'
 ```
 
 (Add `-p$MYSQL_ENV_MYSQL_ROOT_PASSWORD` to the `exec mysql` if `root` requires
@@ -51,7 +54,11 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot < /tmp/mysql/dump.sql'
+  sh -c 'exec mysql \
+    -h"$MYSQL_PORT_3306_TCP_ADDR" \
+    -P"$MYSQL_PORT_3306_TCP_PORT" \
+    -uroot \
+    < /tmp/mysql/dump.sql'
 ```
 
 or export some:
@@ -61,7 +68,12 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysqldump -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" --databases <database_name> -uroot > /tmp/mysql/dump.sql'
+  sh -c 'exec mysqldump \
+    -h"$MYSQL_PORT_3306_TCP_ADDR" \
+    -P"$MYSQL_PORT_3306_TCP_PORT" \
+    --databases <database_name> \
+    -uroot \
+    > /tmp/mysql/dump.sql'
 ```
 
 
