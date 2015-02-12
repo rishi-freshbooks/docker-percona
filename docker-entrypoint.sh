@@ -21,7 +21,7 @@ CLIENT_USER="${MYSQL_USER:-root}"
 # MYSQL_ENV_MYSQL_ROOT_PASSWORD - when using docker link
 # MYSQL_ROOT_PASSWORD - shorthand
 # MYSQL_PASSWORD - even shorterhand
-CLIENT_PASS="${MYSQL_ENV_MYSQL_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-${MYSQL_PASSWORD}}}"
+CLIENT_PASS="${MYSQL_ENV_MYSQL_ROOT_PASSWORD:-${MYSQL_PASSWORD:-${MYSQL_ROOT_PASSWORD}}}"
 # prefix the password with the client cli parameter
 if [ ! -z "${CLIENT_PASS}" ]; then
     CLIENT_PASS="-p${CLIENT_PASS}"
