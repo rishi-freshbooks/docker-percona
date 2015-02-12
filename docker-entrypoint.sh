@@ -30,12 +30,12 @@ fi
 CLIENT_CMD="/usr/bin/mysql -h${CLIENT_HOST} -P${CLIENT_PORT} -u${CLIENT_USER}${CLIENT_PASS}"
 # if you pass prompt as the command then start a mysql client
 if [ "${1}" == "prompt" ]; then
-	set -- ${CLIENT_CMD}
+	set -- ${CLIENT_CMD} ${MYSQL_DATABASE}
 fi
 # if the command is not full pathed (e.g. starts with a forward slash) then
 # assume it is SQL
 if [ "${1:0:1}" != '/' ]; then
-	set -- ${CLIENT_CMD} -e "$@"
+	set -- ${CLIENT_CMD} -e "$@" ${MYSQL_DATABASE}
 fi
 
 if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
