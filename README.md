@@ -35,14 +35,8 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysql \
-    -h"$MYSQL_PORT_3306_TCP_ADDR" \
-    -P"$MYSQL_PORT_3306_TCP_PORT" \
-    -uroot'
+  prompt
 ```
-
-(Add `-p$MYSQL_ENV_MYSQL_ROOT_PASSWORD` to the `exec mysql` if `root` requires
-a password.)
 
 ### Dumping/importing data
 
@@ -54,7 +48,7 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysql \
+  /bin/sh -c 'exec mysql \
     -h"$MYSQL_PORT_3306_TCP_ADDR" \
     -P"$MYSQL_PORT_3306_TCP_PORT" \
     -uroot \
@@ -68,7 +62,7 @@ docker run -it \
   --link <container_name>:mysql \
   --rm \
   freshbooks/percona:5.5 \
-  sh -c 'exec mysqldump \
+  /bin/sh -c 'exec mysqldump \
     -h"$MYSQL_PORT_3306_TCP_ADDR" \
     -P"$MYSQL_PORT_3306_TCP_PORT" \
     --databases <database_name> \
@@ -94,6 +88,8 @@ image.
 image. This environment variable should be what you want to set the root
 password for MySQL to. In the above example, it is being set to
 `passwerd`. Alternately, you can set `MYSQL_ALLOW_EMPTY_PASSWORD` to `true`.
+If the container is being used as a mysql client this password is used if the
+default credentials are blank.
 
 ### `MYSQL_USER`, `MYSQL_PASSWORD`
 
@@ -106,6 +102,8 @@ these variables are used, it will create a new user with the given password in
 the MySQL database - there is no need to specify `MYSQL_USER` with `root`, as
 the `root` user already exists in the default MySQL and the password is
 controlled by `MYSQL_ROOT_PASSWORD`.
+If the container is running in client mode, these credentials are used to
+connect to the remote database.
 
 ### `MYSQL_DATABASE`
 
@@ -114,3 +112,7 @@ a user/password was supplied (via the `MYSQL_USER` and `MYSQL_PASSWORD`
 environment variables) then that user account will be granted (`GRANT ALL`)
 access to this database.
 
+### `MYSQL_HOST` and `MYSQL_PORT`
+
+These environment variables are used when the container is used in client mode
+to describe which mysql server to connect to.
