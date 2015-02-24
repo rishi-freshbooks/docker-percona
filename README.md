@@ -1,25 +1,80 @@
 # Percona Server 5.5
 
-## Default Configuration
-
-The MySQL default configuration can be overridden by exporting the /etc/mysql/conf.d/ directory.
-
 ## Usage
 
-To run a disposable database where the data does not persist the root password by default is not set.
+### Disposable database
 
-```
-docker run -d percona:5.5
-docker run -it --link container_name:mysql --rm percona:5.5 sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot'
+Data is stored in `/var/lib/mysql`, to which the host can optionally mount a
+volume. If no volume is mounted, your data will die when the container dies.
+Run the container like this if you don't want to persist your data:
+
+```bash
+docker run -d freshbooks/percona:5.5
 ```
 
-To persist the data share a data directory to the /var/lib/mysql mount point and define a password
-environment variable
+Note, `root` gets a passwordless login when you create the container this way.
 
+### Persisting database
+
+To persist data beyond the life of the container, mount a directory from the
+host to `/var/lib/mysql` in the container. If you do this, you must either
+define a root password, or explicitly say you do not want one:
+
+```bash
+docker run -dv /tmp/mysql:/var/lib/mysql \
+  -e MYSQL_ROOT_PASSWORD=passwerd \
+  freshbooks/percona:5.5
 ```
-docker run -dv /tmp/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwerd percona:5.5
-docker run -it --link container_name:mysql --rm percona:5.5 sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p$MYSQL_ENV_MYSQL_ROOT_PASSWORD'
+
+### Getting a mysql prompt
+
+Once your container is running, you can get a mysql prompt by running:
+
+```bash
+docker run -it \
+  --link <container_name>:mysql \
+  --rm \
+  freshbooks/percona:5.5 \
+  prompt
 ```
+
+### Dumping/importing data
+
+Here is how you would import data:
+
+```bash
+docker run -it \
+  -v /tmp/mysql:/tmp/mysql \
+  --link <container_name>:mysql \
+  --rm \
+  freshbooks/percona:5.5 \
+  /bin/sh -c 'exec mysql \
+    -h"$MYSQL_PORT_3306_TCP_ADDR" \
+    -P"$MYSQL_PORT_3306_TCP_PORT" \
+    -uroot \
+    < /tmp/mysql/dump.sql'
+```
+
+or export some:
+```bash
+docker run -it \
+  -v /tmp/mysql:/tmp/mysql \
+  --link <container_name>:mysql \
+  --rm \
+  freshbooks/percona:5.5 \
+  /bin/sh -c 'exec mysqldump \
+    -h"$MYSQL_PORT_3306_TCP_ADDR" \
+    -P"$MYSQL_PORT_3306_TCP_PORT" \
+    --databases <database_name> \
+    -uroot \
+    > /tmp/mysql/dump.sql'
+```
+
+
+### Default Configuration
+
+Configuration for mysql can be overridden by mounting a directory to
+`/etc/mysql/conf.d`.
 
 ## Environment Variables
 
@@ -27,12 +82,14 @@ The MySQL image uses several environment variables which are easy to miss. While
 not all the variables are required, they may significantly aid you in using the
 image.
 
-### `MYSQL_ROOT_PASSWORD`
+### `MYSQL_ROOT_PASSWORD`, `MYSQL_ALLOW_EMPTY_PASSWORD`
 
-This is the one environment variable that is required for you to use the MySQL
+`MYSQL_ROOT_PASSWORD` is the one environment variable that is required for you to use the MySQL
 image. This environment variable should be what you want to set the root
 password for MySQL to. In the above example, it is being set to
-"mysecretpassword".
+`passwerd`. Alternately, you can set `MYSQL_ALLOW_EMPTY_PASSWORD` to `true`.
+If the container is being used as a mysql client this password is used if the
+default credentials are blank.
 
 ### `MYSQL_USER`, `MYSQL_PASSWORD`
 
@@ -45,6 +102,8 @@ these variables are used, it will create a new user with the given password in
 the MySQL database - there is no need to specify `MYSQL_USER` with `root`, as
 the `root` user already exists in the default MySQL and the password is
 controlled by `MYSQL_ROOT_PASSWORD`.
+If the container is running in client mode, these credentials are used to
+connect to the remote database.
 
 ### `MYSQL_DATABASE`
 
@@ -53,3 +112,7 @@ a user/password was supplied (via the `MYSQL_USER` and `MYSQL_PASSWORD`
 environment variables) then that user account will be granted (`GRANT ALL`)
 access to this database.
 
+### `MYSQL_HOST` and `MYSQL_PORT`
+
+These environment variables are used when the container is used in client mode
+to describe which mysql server to connect to.
