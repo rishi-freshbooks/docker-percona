@@ -24,7 +24,7 @@ CLIENT_USER="${MYSQL_USER:-root}"
 CLIENT_PASS="${MYSQL_ENV_MYSQL_ROOT_PASSWORD:-${MYSQL_PASSWORD:-${MYSQL_ROOT_PASSWORD}}}"
 # prefix the password with the client cli parameter
 if [ ! -z "${CLIENT_PASS}" ]; then
-    CLIENT_PASS="-p${CLIENT_PASS}"
+    CLIENT_PASS=" -p${CLIENT_PASS}"
 fi
 # put all it all together
 CLIENT_CMD="/usr/bin/mysql -h${CLIENT_HOST} -P${CLIENT_PORT} -u${CLIENT_USER}${CLIENT_PASS}"
