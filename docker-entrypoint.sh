@@ -38,7 +38,7 @@ if [ "${1:0:1}" != '/' ]; then
 	set -- ${CLIENT_CMD} -e "$@" ${MYSQL_DATABASE}
 fi
 
-if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
+if [ ! -d "$DATADIR/mysql" -a $(basename "${1%_safe}") = 'mysqld' ]; then
 	if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" ]; then
 		echo >&2 'error: database is uninitialized and MYSQL_ROOT_PASSWORD not set'
 		echo >&2 '  Did you forget to add -e MYSQL_ROOT_PASSWORD=... ?'
