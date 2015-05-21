@@ -49,31 +49,34 @@ if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
 	mysql_install_db
 	echo 'Finished mysql_install_db'
 	
-	# These statements _must_ be on individual lines, and _must_ end with
-	# semicolons (no line breaks or comments are permitted).
-	# TODO proper SQL escaping on ALL the things D:
+	tempSqlFile='/var/lib/mysql/bootstrap.sql'
+	if [ ! -f "$tempSqlFile" ]
+	then
+		# These statements _must_ be on individual lines, and _must_ end with
+		# semicolons (no line breaks or comments are permitted).
+		# TODO proper SQL escaping on ALL the things D:
 	
-	tempSqlFile='/tmp/mysql-first-time.sql'
-	cat > "$tempSqlFile" <<-EOSQL
-		DELETE FROM mysql.user ;
-		CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
-		GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-		DROP DATABASE IF EXISTS test ;
-	EOSQL
+	    cat > "$tempSqlFile" <<-EOSQL
+			DELETE FROM mysql.user ;
+			CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+			DROP DATABASE IF EXISTS test ;
+		EOSQL
 	
-	if [ "$MYSQL_DATABASE" ]; then
-		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
-	fi
-	
-	if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-		echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" >> "$tempSqlFile"
-		
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" >> "$tempSqlFile"
+			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
 		fi
-	fi
 	
-	echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
+		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" >> "$tempSqlFile"
+		
+			if [ "$MYSQL_DATABASE" ]; then
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" >> "$tempSqlFile"
+			fi
+		fi
+	
+		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
+	fi
 	
 	set -- "$@" --init-file="$tempSqlFile"
 fi
