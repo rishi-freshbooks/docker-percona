@@ -18,6 +18,8 @@ RUN \
       echo '[mysqld]'; \
       echo 'user = mysql'; \
       echo 'datadir = /var/lib/mysql'; \
+      echo 'innodb_flush_log_at_trx_commit = 0'; \
+      echo 'innodb_doublewrite = 0'; \
     } > /etc/mysql/conf.d/docker.cnf
 
 RUN \
